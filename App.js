@@ -1,133 +1,157 @@
-import React,{Component} from 'react';
-import { StyleSheet, Text, View,Image,TouchableOpacity,FlatList,ScrollView, ImageBackground } from 'react-native';
-import icon from"./json/icon.json"
-//import homelist from"../homelist.json";
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Image, View,AsyncStorage } from 'react-native';
+import TeaScreen from './src/screens/TeaScreen'; 
+import MilkTeaScreen from './src/screens/MilkTeaScreen'; 
+import FlavorScreen from './src/screens/FlavorScreen'; 
+import SeasonScreen from './src/screens/SeasonScreen'; 
+import MemberScreen from './src/screens/MemberScreen';
+import StoreScreen from './src/screens/StoreScreen';
+import MenuScreen from './src/screens/MenuScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import { SplashScreen } from 'expo';
+const PERSISTENCE_KEY = "ALBUMS_NAVIGATION_STATE";
+const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 
 
-const myhome = ({navigation})=>{
-  return(
-    <View style={{flex: 1,backgroundColor:"#F9D9A6"}}>
-      <View style={styles.headerContentStyle}>
-        <View style={styles.headerLeft}>
-          <Image source={{uri:icon.logo}}
-          style={{width:71,height:30}}/>
-        </View>
-        <View style={styles.headerMiddle}>
-        <Text style={styles.titleStyle}>首頁</Text>
-      </View>
-      <View style={styles.headerRight}>
-        <Image source={{uri:icon.change}}
-        style={{width:24,height:24}}/>
-      </View>
-      <View style={styles.headerRight_1}>
-        <Image source={{uri:icon.assignment}}
-        style={{width:24,height:24}}/>
-      </View>
-      </View>
-    <ScrollView>
-      <View style={styles.picture_setting}>
-       <ImageBackground source={{uri:"https://github.com/ciel0412/mid/blob/master/img/img_cafe-1.jpg?raw=true"}}
-       style={styles.image}>
-         <Text style={styles.information}>最新資訊</Text>
-         <View style={styles.arrow}>
-         <Text style={styles.information_2}>了解更多 ></Text>
-         </View>
-       </ImageBackground>  
-      </View>
-      <View style={styles.picture_setting_2}>
-        <ImageBackground source={{uri:"https://github.com/ciel0412/mid/blob/master/img/img_cafe-2.jpg?raw=true"}}
-          style={styles.image}>
-            <Text style={styles.information}>最新資訊</Text>
-         <View style={styles.arrow}>
-         <Text style={styles.information_2}>了解更多 ></Text>
-         </View>
-        </ImageBackground>  
-      </View>
-      <View style={styles.picture_setting_3}>
-        <ImageBackground source={{uri:"https://github.com/ciel0412/mid/blob/master/img/img_cafe-3.jpg?raw=true"}}
-          style={styles.image}>
-            <Text style={styles.information}>最新資訊</Text>
-         <View style={styles.arrow}>
-         <Text style={styles.information_2}>了解更多 ></Text>
-         </View>
-        </ImageBackground>  
-      </View>
-    </ScrollView>
-     </View>
-  );
+
+const App = () => {
+  const [isLoadingComplete, setLoadingComplete] = React.useState(false);
+  const [initialNavigationState, setInitialNavigationState] = React.useState();
+
+  // Load any resources or data that we need prior to rendering the app
+  React.useEffect(() => {
+    async function loadResourcesAndDataAsync() {
+      try {
+        SplashScreen.preventAutoHide();
+        const savedStateString = await AsyncStorage.getItem(PERSISTENCE_KEY);
+        const state = JSON.parse(savedStateString);
+        setInitialNavigationState(state);
+      } catch (e) {
+        // We might want to provide this error information to an error reporting service
+        console.warn(e);
+      } finally {
+        setLoadingComplete(true);
+        SplashScreen.hide();
+      }
+    }
+    loadResourcesAndDataAsync();
+  }, []);
+  
+  if (!isLoadingComplete) {
+    return null;
+  } else {
+    return (
+      <NavigationContainer
+         initialState={initialNavigationState}
+         onStateChange={(state) =>
+          AsyncStorage.setItem(PERSISTENCE_KEY, JSON.stringify(state))
+        }
+      >
+        <Tab.Navigator
+          screenOptions={({ route }) => ({
+            tabBarIcon: ({ focused, color, size }) => {
+              let iconPath;
+  
+              if (route.name === '首頁') {
+                iconPath = focused
+                ? require('./assets/btn_home-selected.png'):
+                require('./assets/btn_home-unselected.png');
+              }  else if (route.name === '菜單') {
+                iconPath = focused
+                ? require('./assets/btn_menu-selected.png'):
+                require('./assets/btn_menu-unselected.png');
+              }
+              else if (route.name === '門市') {
+                iconPath = focused
+                ? require('./assets/btn_store-selected.png'):
+                require('./assets/btn_store-unselected.png');
+              } else if (route.name == '會員') {
+                iconPath = focused
+                ? require('./assets/btn_member-selected.png'):
+                require('./assets/btn_member-unselected.png');
+              }
+  
+              // You can return any component that you like here!
+              return (
+                <Image 
+                  style={{width: 24, height: 24,marginTop:8}}
+                  source={iconPath} 
+                />
+              );
+            },
+          })}
+          tabBarOptions={{
+            activeBackgroundColor:"#40230D",
+            inactiveBackgroundColor:"#40230D",
+            activeTintColor: '#F9D9A6',
+            inactiveTintColor: '#FFF',
+            
+            labelStyle: {
+              fontSize: 12,
+              marginTop: 0,
+              padding: 0,
+            },
+          }}
+        >
+          <Tab.Screen name="首頁" component={HomeScreen} />
+          <Tab.Screen name="菜單" component={MenuStack} />
+          <Tab.Screen name="門市" component={StoreScreen} />
+          <Tab.Screen name="會員" component={MemberScreen} />
+          
+        </Tab.Navigator>
+      </NavigationContainer>
+    );
+  }
  
 }
-const styles=StyleSheet.create({
+const MenuStack = () => {
+  return (
+   <Stack.Navigator>
+     
+        <Stack.Screen 
+          name="菜單" 
+          component={MenuScreen} 
+          options={{
+          
+            headerShown: false
+          }}
+        />
+         <Stack.Screen 
+          name="Tea" 
+          component={TeaScreen} 
+          options={{
+           
+            headerShown: false
+          }}
+        />
+       <Stack.Screen 
+          name="MilkTea" 
+          component={MilkTeaScreen} 
+          options={{
+            headerShown: false
+          }}
+        />
+         <Stack.Screen 
+          name="Flavor" 
+          component={FlavorScreen} 
+          options={{
+           
+            headerShown: false
+          }}
+        />
+         <Stack.Screen 
+          name="Season" 
+          component={SeasonScreen} 
+          options={{
+            headerShown: false
+          }}
+        />    
+      </Stack.Navigator>
+  );
+}
 
-  headerContentStyle:{
-    height:80,
-    backgroundColor:"#40230D",
-    justifyContent:"flex-start",
-    alignItems:"center",
-    flexDirection:"row",
-    elevation:2,
-    paddingEnd:35,
-    
-  },
-  headerLeft:{
-    width:"20%",
-    paddingLeft:16,
-    paddingTop:10,
-  },
-  headerMiddle:{
-    width:"60%",
-    alignItems:"center",
-    paddingLeft:25,
-  },
-  headerRight:{
-    width:"20%",
-   paddingTop:10,
-   paddingLeft:45,
-
-  },
-  headerRight_1:{
-    width:"20%",
-    paddingTop:10,
-    paddingRight:5,
-  },
-  titleStyle:{
-    color:"#FFF",
-    fontSize:18,
-    fontWeight:"bold",
-    paddingTop:10,
-  },
-  picture_setting:{
-    height:300,
-    //paddingTop:30,
-    justifyContent:"flex-start",
-  },
-  image:{
-    height:230,
-  },
-  arrow:{
-paddingLeft:280,
-paddingTop:150,
-  },
-  information:{
-    paddingTop:10,
-    paddingLeft:10,
-    fontSize:18,
-    color:"#FFF",
-  },
-  information_2:{
-   
-   fontSize:18,
-   color:"#FFF", 
-  },
-  picture_setting_2:{
-    height:300,
-    paddingTop:0,
-    
-  },
-  picture_setting_3:{
-    height:300,
-    
-  },
-});
-export default myhome;  
-
+export default App;
